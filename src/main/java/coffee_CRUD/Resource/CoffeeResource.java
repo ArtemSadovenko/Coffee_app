@@ -24,4 +24,8 @@ public class CoffeeResource {
         return coffeeRepository.findAll();
     }
 
+    @DeleteMapping("/{id}")
+    public void del(@PathVariable Long id){
+        coffeeRepository.deleteById(id);
+    }
 }

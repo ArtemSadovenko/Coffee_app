@@ -1,5 +1,7 @@
 package coffee_CRUD.Entity;
 
+import coffee_CRUD.Entity.enums.CoffeeBill;
+import coffee_CRUD.Entity.enums.ToppingBill;
 import coffee_CRUD.Entity.enums.UserRole;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -30,7 +32,11 @@ public class User {
 
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = false)
     @JoinColumn(name = "user_id")
-    private List<Coffee> coffees = new ArrayList<>();
+    private List<CoffeeBill> coffees = new ArrayList<>();
+
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = false)
+    @JoinColumn(name = "user_id")
+    private List<ToppingBill> toppings = new ArrayList<>();
 
 //    @OneToMany(cascade = CascadeType.ALL)
 //    @JoinColumn(name = "coffee(id)")

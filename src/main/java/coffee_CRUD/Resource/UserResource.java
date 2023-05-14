@@ -2,9 +2,13 @@ package coffee_CRUD.Resource;
 
 
 import coffee_CRUD.Entity.Coffee;
+import coffee_CRUD.Entity.Topping;
 import coffee_CRUD.Entity.User;
-import coffee_CRUD.Repository.CoffeeRepository;
-import coffee_CRUD.Repository.UserRepository;
+import coffee_CRUD.Entity.enums.CoffeeBill;
+import coffee_CRUD.Entity.enums.ToppingBill;
+import coffee_CRUD.Entity.enums.UserRole;
+import coffee_CRUD.Helper.CustomPair;
+import coffee_CRUD.Repository.*;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -22,6 +26,15 @@ public class UserResource {
     @Autowired
     CoffeeRepository coffeeRepository;
 
+    @Autowired
+    CoffeeBillRepository coffeeBillRepository;
+
+    @Autowired
+    ToppingRepository toppingRepository;
+
+    @Autowired
+    ToppingBillRepository toppingBillRepository;
+
     @PostMapping("/create")
     public void create(@RequestBody User user){
         userRepository.save(user);
@@ -33,35 +46,77 @@ public class UserResource {
     }
 
     @PostMapping("/{id}/byCoffee")
-    public @ResponseBody String byCoffee(@PathVariable Long id, @RequestBody Coffee coffee){
-//        Coffee old = coffeeRepository.findById(coffee.getId()).get();
-//        User user = userRepository.findById(id).get();
-//
-//        Coffee cof = new Coffee();
-//        cof.setId(coffee.getId());
-//        cof.setName(coffee.getName());
-//        cof.setAmount(old.getAmount() - coffee.getAmount());
-//
-//        user.getCoffees().add(coffee);
-////
-////        old.setAmount(old.getAmount() - coffee.getAmount());
-//
-//        coffeeRepository.save(cof);
-//        userRepository.save(user);
+    public void byCoffee(@PathVariable Long id, @RequestBody Coffee coffee){
 
-        Coffee coffee1 = coffeeRepository.findById(coffee.getId()).get();
-        User user = userRepository.findById(id).get();
+        User old = userRepository.findById(id).get();
+        Coffee oldCoffee = coffeeRepository.findById(coffee.getId()).get();
 
-        user.getCoffees().add(coffee);
+        CoffeeBill coffeeBill = new CoffeeBill();
 
-        coffee1.setAmount(coffee1.getAmount()- coffee.getAmount());
+        coffeeBill.setName(coffee.getName());
+        coffeeBill.setAmount(coffee.getAmount());
+        coffeeBill.setId(coffee.getId());
 
-        String res = String.valueOf(coffee1.getAmount());
+        coffeeBillRepository.save(coffeeBill);
 
-        userRepository.save(user);
-        coffeeRepository.save(coffee1);
+        old.getCoffees().add(coffeeBill);
 
-        return res;
+        oldCoffee.setAmount(oldCoffee.getAmount() - coffee.getAmount());
+
+        userRepository.save(old);
+        coffeeRepository.save(oldCoffee);
     }
 
+    @PutMapping("/{id}/upCoffee")
+    public @ResponseBody String upCoffee(@RequestBody Coffee coffee, @PathVariable Long id){
+        if(userRepository.findById(id).get().getUserRole().equals(UserRole.ADMIN)){
+            coffeeRepository.save(coffee);
+            return "Success";
+        }
+        return "Only Admin can add amount";
+    }
+
+    @GetMapping("/{id}/bill")
+    public CustomPair bill(@PathVariable Long id){
+        CustomPair customPair = new CustomPair();
+        customPair.setCoffeeBills(
+            userRepository.findById(id).get().getCoffees()
+        );
+        customPair.setToppingBills(
+                userRepository.findById(id).get().getToppings()
+        );
+        return customPair;
+    }
+
+
+    @PostMapping("/{id}/byTopping")
+    public void byTopping(@PathVariable Long id, @RequestBody Topping topping){
+
+        User old = userRepository.findById(id).get();
+        Topping oldTopping = toppingRepository.findById(topping.getId()).get();
+
+        ToppingBill toppingBill = new ToppingBill();
+
+        toppingBill.setName(topping.getName());
+        toppingBill.setAmount(topping.getAmount());
+        toppingBill.setId(topping.getId());
+
+        toppingBillRepository.save(toppingBill);
+
+        old.getToppings().add(toppingBill);
+
+        oldTopping.setAmount(oldTopping.getAmount() - topping.getAmount());
+
+        userRepository.save(old);
+        toppingRepository.save(oldTopping);
+    }
+
+    @PutMapping("/{id}/upTopping")
+    public @ResponseBody String upTopping(@RequestBody Topping topping, @PathVariable Long id){
+        if(userRepository.findById(id).get().getUserRole().equals(UserRole.ADMIN)){
+            toppingRepository.save(topping);
+            return "Success";
+        }
+        return "Only Admin can add amount";
+    }
 }
